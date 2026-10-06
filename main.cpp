@@ -1,16 +1,12 @@
-#include <raylib.h>
-
-#include <forge/forge.hpp>
-#include <iostream>
+#include "src/locatchu/game.hpp"
 
 int main(int argc, char** argv) {
-    InitWindow(500, 500, "locatchu");
-    while (!WindowShouldClose()) {
-        BeginDrawing();
-        ClearBackground(MAGENTA);
-        EndDrawing();
-    }
-
-    CloseWindow();
-    return 0;
+    loca::Game game;
+    try {
+        game.run();
+    } catch (std::exception& e) {
+        std::cout << e.what() << std::endl;
+        return EXIT_FAILURE;
+    };
+    return EXIT_SUCCESS;
 };
