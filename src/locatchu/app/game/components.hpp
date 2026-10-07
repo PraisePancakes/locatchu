@@ -4,17 +4,17 @@
 #include <iostream>
 namespace loca {
 
-struct Tag {
-    enum class Type {
+struct tag {
+    enum {
         PLAYER,
         ENEMY
     } type;
 };
 
-struct Position {
+struct position {
     Vector2 location{0};
 };
-struct Velocity {
+struct velocity {
     Vector2 direction{0};
 };
 };  // namespace loca

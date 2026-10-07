@@ -58,7 +58,9 @@ message("  Version: ${PROJECT_VERSION}")
 message("  Version (alt): ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
 
 target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_23)
-
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    PROJECT_ROOT="${CMAKE_SOURCE_DIR}"
+)
 message(STATUS  "*")
 message(STATUS  "* ${PROJECT_NAME} v${PROJECT_VERSION} (${CMAKE_BUILD_TYPE})")
 message(STATUS  "*")
