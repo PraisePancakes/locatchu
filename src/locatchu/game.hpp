@@ -30,7 +30,6 @@ class Game {
         };
         auto enemy = world.make();
         world.add_component<Position, Velocity, Tag>(enemy, Position{p.location.x + 50, p.location.y + 50}, Velocity{0, 0}, Tag::Type::ENEMY);
-
         return true;
     };
 

@@ -1,5 +1,5 @@
+#include "src/locatchu/app/application.hpp"
 #include "src/locatchu/game.hpp"
-
 int main(int argc, char** argv) {
     loca::Game game;
     try {

@@ -38,10 +38,17 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(forge)
 
+FetchContent_Declare(
+    nlohmann_json
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
+    GIT_TAG v3.12.0
+)
+FetchContent_MakeAvailable(nlohmann_json)
+
 add_executable(${PROJECT_NAME} 
     main.cpp 
 )
-target_link_libraries(${PROJECT_NAME}  PRIVATE forge raylib)
+target_link_libraries(${PROJECT_NAME}  PRIVATE forge raylib nlohmann_json::nlohmann_json)
 message("INFO :")
 message("  C: '${CMAKE_C_COMPILER}'")
 message("  C++: '${CMAKE_CXX_COMPILER}'")
