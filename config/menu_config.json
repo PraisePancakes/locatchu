@@ -1,0 +1,34 @@
+{
+    "title_color": {
+        "r": 0,
+        "g": 228,
+        "b": 48,
+        "a": 255
+    },
+    "description_color": {
+        "r": 0,
+        "g": 0,
+        "b": 0,
+        "a": 255
+    },
+    "background_color": {
+        "r": 245,
+        "g": 245,
+        "b": 245,
+        "a": 255
+    },
+    "start_color": {
+        "r": 0,
+        "g": 228,
+        "b": 48,
+        "a": 255
+    },
+    "quit_color": {
+        "r": 0,
+        "g": 0,
+        "b": 0,
+        "a": 255
+    },
+    "title": "locatchu",
+    "description": "An entity with no thoughts"
+}

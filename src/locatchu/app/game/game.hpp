@@ -5,17 +5,21 @@
 #include <iostream>
 
 #include "../serialize.hpp"
+#include "../states.hpp"
 #include "components.hpp"
 
 namespace loca {
 using world_t = forge::registry<position, velocity, tag>;
-class game {
+
+class game : public state_interface {
     world_t world;
     forge::entity player;
     Camera2D camera{};
     const config::world_config config;
 
-    [[nodiscard]] bool init() {
+   public:
+    game(const config::world_config& config) : config{config} {};
+    void on_init() override {
         player = world.make();
         auto [p, _, _] = world.add_component<position, velocity, tag>(player, position{GetScreenWidth() / 2.f, GetScreenHeight() / 2.f}, velocity{0, 0}, tag::PLAYER);
         camera = Camera2D{
@@ -26,10 +30,11 @@ class game {
         };
         auto enemy = world.make();
         world.add_component<position, velocity, tag>(enemy, position{p.location.x + 50, p.location.y + 50}, velocity{0, 0}, tag::ENEMY);
-        return true;
     };
 
-    void input() {
+    void on_exit() override {};
+
+    void on_input() override {
         const static float SPEED = config.player_speed;
         auto& vel = world.get_component<velocity>(player);
         Vector2 dir{0};
@@ -41,7 +46,7 @@ class game {
         vel.direction = (dir * SPEED);
     };
 
-    void update(float dt) {
+    void on_update(float dt) override {
         auto& camera_position = world.get_component<const position>(player);
         camera.target = camera_position.location;
 
@@ -52,7 +57,9 @@ class game {
                 Vector2Scale(v.direction, dt));
         });
     };
-    void render() {
+    void on_render() override {
+        ClearBackground(RAYWHITE);
+        BeginMode2D(camera);
         auto v = world.view<const position, const velocity, const tag>();
         v.each([&](const position& p, const velocity& v, const tag& t) {
             DrawCircle(p.location.x,
@@ -60,26 +67,7 @@ class game {
                        t.type == tag::PLAYER ? config.player_radius : config.enemy_radius,
                        t.type == tag::PLAYER ? config.player_color : config.enemy_color);
         });
-    };
-    void loop() {
-        while (!WindowShouldClose()) {
-            float dt = GetFrameTime();
-            input();
-            update(dt);
-            BeginDrawing();
-            ClearBackground(RAYWHITE);
-            BeginMode2D(camera);
-            render();
-            EndMode2D();
-            EndDrawing();
-        };
-    };
-
-   public:
-    game(const config::world_config& config) : config{config} {};
-    void run() {
-        if (!init()) throw std::runtime_error("game initialization failed");
-        loop();
+        EndMode2D();
     };
     game(const game&) = delete;
     game(game&&) = default;

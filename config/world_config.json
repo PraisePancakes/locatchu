@@ -1,1 +1,17 @@
-{"enemy_color":{"a":255,"b":55,"g":41,"r":230},"enemy_radius":25,"player_color":{"a":255,"b":0,"g":0,"r":0},"player_radius":25,"player_speed":200.0}
+{
+    "player_radius": 25,
+    "player_color": {
+        "r": 0,
+        "g": 0,
+        "b": 0,
+        "a": 255
+    },
+    "player_speed": 200.0,
+    "enemy_color": {
+        "r": 230,
+        "g": 41,
+        "b": 55,
+        "a": 255
+    },
+    "enemy_radius": 25
+}
