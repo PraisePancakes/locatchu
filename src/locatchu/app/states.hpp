@@ -14,8 +14,8 @@ class state_interface {
 
 template <typename T>
 concept stateful = requires(T& t) {
-    { t.on_init() };
-    { t.on_exit() };
+    { t.on_init() } -> std::same_as<void>;
+    { t.on_exit() } -> std::same_as<void>;
 };
 
 template <typename IdType, stateful StateType>
