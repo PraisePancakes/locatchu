@@ -5,12 +5,14 @@
         "b": 48,
         "a": 255
     },
+    "title_font_size": 50,
     "description_color": {
         "r": 0,
         "g": 0,
         "b": 0,
         "a": 255
     },
+    "description_font_size": 25,
     "background_color": {
         "r": 245,
         "g": 245,
@@ -23,12 +25,14 @@
         "b": 48,
         "a": 255
     },
+    "start_font_size": 25,
+    "quit_font_size": 25,
     "quit_color": {
-        "r": 0,
-        "g": 0,
-        "b": 0,
+        "r": 196,
+        "g": 26,
+        "b": 48,
         "a": 255
     },
     "title": "locatchu",
-    "description": "An entity with no thoughts"
+    "description": "An entity with no thoughts..."
 }

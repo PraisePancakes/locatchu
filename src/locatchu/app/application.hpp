@@ -48,8 +48,11 @@ class application {
     [[nodiscard]] bool init() {
         if (!initialize_configuration_set(this->menu_config, this->app_config, this->world_config)) return false;
         InitWindow(this->app_config.screen_width, this->app_config.screen_height, this->app_config.title.c_str());
+        SetWindowState(FLAG_FULLSCREEN_MODE);
         this->state_manager.register_state<game>(APP_STATES::GAME, world_config);
-        this->state_manager.set_current_state(APP_STATES::GAME);
+        this->state_manager.register_state<menu>(APP_STATES::MENU, menu_config);
+
+        this->state_manager.set_current_state(APP_STATES::MENU);
 
         return true;
     };

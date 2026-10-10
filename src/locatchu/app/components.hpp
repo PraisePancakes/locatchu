@@ -7,7 +7,8 @@ namespace loca {
 struct tag {
     enum {
         PLAYER,
-        ENEMY
+        ENEMY,
+        PARTICLE
     } type;
 };
 

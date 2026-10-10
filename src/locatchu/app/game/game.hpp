@@ -4,9 +4,9 @@
 #include <forge/forge.hpp>
 #include <iostream>
 
+#include "../components.hpp"
 #include "../serialize.hpp"
 #include "../states.hpp"
-#include "components.hpp"
 
 namespace loca {
 using world_t = forge::registry<position, velocity, tag>;

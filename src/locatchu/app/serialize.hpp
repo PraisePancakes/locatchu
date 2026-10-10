@@ -98,19 +98,27 @@ struct world_config {
 struct menu_config {
     const char* configuration_path = "config/menu_config.json";
     Color title_color{GREEN};
+    int title_font_size{50};
     Color description_color{BLACK};
+    int description_font_size{25};
     Color background_color{RAYWHITE};
     Color start_color{GREEN};
+    int start_font_size{25};
     Color quit_color{BLACK};
+    int quit_font_size{25};
     std::string title = "locatchu";
     std::string description = "An entity with no thoughts";
 
     friend void to_json(nlohmann::ordered_json& j, const menu_config& c) {
         j = nlohmann::ordered_json{
             {"title_color", c.title_color},
+            {"title_font_size", c.title_font_size},
             {"description_color", c.description_color},
+            {"description_font_size", c.description_font_size},
             {"background_color", c.background_color},
             {"start_color", c.start_color},
+            {"start_font_size", c.start_font_size},
+            {"quit_font_size", c.quit_font_size},
             {"quit_color", c.quit_color},
             {"title", c.title},
             {"description", c.description}
@@ -119,9 +127,13 @@ struct menu_config {
     };
     friend void from_json(const nlohmann::ordered_json& j, menu_config& c) {
         j.at("title_color").get_to(c.title_color);
+        j.at("title_font_size").get_to(c.title_font_size);
         j.at("description_color").get_to(c.description_color);
+        j.at("description_font_size").get_to(c.description_font_size);
         j.at("background_color").get_to(c.background_color);
         j.at("start_color").get_to(c.start_color);
+        j.at("start_font_size").get_to(c.start_font_size);
+        j.at("quit_font_size").get_to(c.quit_font_size);
         j.at("quit_color").get_to(c.quit_color);
         j.at("title").get_to(c.title);
         j.at("description").get_to(c.description);
