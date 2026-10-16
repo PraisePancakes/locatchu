@@ -15,13 +15,7 @@ class application {
     config::world_config world_config{};
     config::app_config app_config{};
     config::menu_config menu_config{};
-    enum class APP_STATES : std::uint8_t {
-        GAME,
-        MENU,
-        QUIT
-    };
-    loca::state_manager<APP_STATES, state_interface> state_manager;
-
+    loca::state_manager<state_interface<APP_STATES>> state_manager;
     template <typename T>
         requires(config::configuration_compatible<T>)
     [[nodiscard]] bool initialize_configuration(T& config) {
@@ -51,10 +45,12 @@ class application {
         if (!initialize_configuration_set(this->menu_config, this->app_config, this->world_config)) return false;
         InitWindow(this->app_config.screen_width, this->app_config.screen_height, this->app_config.title.c_str());
         SetWindowState(FLAG_FULLSCREEN_MODE);
-        this->state_manager.register_state<game>(APP_STATES::GAME, world_config);
-        this->state_manager.register_state<menu>(APP_STATES::MENU, menu_config);
+        auto transition_callback = [this](APP_STATES s) {
+            state_manager.request_transition(s);
+        };
+        this->state_manager.register_state<game>(APP_STATES::GAME, world_config, transition_callback);
+        this->state_manager.register_state<menu>(APP_STATES::MENU, menu_config, transition_callback);
         this->state_manager.set_current_state(APP_STATES::MENU);
-
         return true;
     };
 
@@ -64,6 +60,7 @@ class application {
         while (!WindowShouldClose()) {
             BeginDrawing();
             float dt = GetFrameTime();
+
             this->state_manager.get_current_state()->on_input();
             this->state_manager.get_current_state()->on_update(dt);
             this->state_manager.get_current_state()->on_render();

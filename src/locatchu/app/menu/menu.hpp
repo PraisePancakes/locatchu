@@ -9,7 +9,7 @@
 
 namespace loca {
 
-class menu : public state_interface {
+class menu : public state_interface<APP_STATES> {
     using world_t = forge::registry<position, velocity, text, tag>;
     config::menu_config config;
     world_t world;
@@ -100,8 +100,10 @@ class menu : public state_interface {
     };
 
    public:
-    menu(const config::menu_config& config) : config{config} {};
-    void on_update(float) override {};
+    menu(const config::menu_config& config, auto callback) : state_interface<APP_STATES>(callback), config{config} {};
+    void on_update(float) override {
+        if (IsKeyPressed(KEY_ENTER)) this->request_transition(APP_STATES::GAME);
+    };
     void on_render() override {
         ClearBackground(config.background_color);
         render_title_text();

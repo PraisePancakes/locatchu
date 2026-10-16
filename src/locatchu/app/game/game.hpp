@@ -10,7 +10,7 @@
 
 namespace loca {
 
-class game : public state_interface {
+class game : public state_interface<APP_STATES> {
     using world_t = forge::registry<position, velocity, tag>;
     world_t world;
     forge::entity player;
@@ -18,7 +18,7 @@ class game : public state_interface {
     const config::world_config config;
 
    public:
-    game(const config::world_config& config) : config{config} {};
+    game(const config::world_config& config, auto callback) : state_interface<APP_STATES>(callback), config{config} {};
     void on_init() override {
         player = world.make();
         auto [p, _, _] = world.add_component<position, velocity, tag>(player, position{GetScreenWidth() / 2.f, GetScreenHeight() / 2.f}, velocity{0, 0}, tag::PLAYER);

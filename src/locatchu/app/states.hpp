@@ -2,14 +2,32 @@
 #include <memory>
 #include <vector>
 namespace loca {
+enum class APP_STATES : std::uint8_t {
+    GAME,
+    MENU,
+    QUIT
+};
+
+template <typename T>
+    requires(std::is_enum_v<T>)
 class state_interface {
+    using transition_callback = std::function<void(T)>;
+    transition_callback _transition;
+
    public:
+    using ID_TYPE = T;
+    state_interface(transition_callback t) : _transition{std::move(t)} {};
     virtual void on_update(float) = 0;
     virtual void on_render() = 0;
     virtual void on_init() = 0;
     virtual void on_exit() = 0;
     virtual void on_input() = 0;
     virtual ~state_interface() = default;
+
+   protected:
+    void request_transition(T t) {
+        _transition(t);
+    };
 };
 
 template <typename T>
@@ -18,9 +36,9 @@ concept stateful = requires(T& t) {
     { t.on_exit() } -> std::same_as<void>;
 };
 
-template <typename IdType, stateful StateType>
-    requires(std::is_enum_v<IdType>)
+template <stateful StateType>
 class state_manager {
+    using IdType = typename StateType::ID_TYPE;
     std::unordered_map<IdType, std::unique_ptr<StateType>> state_map;
     StateType* current_state{nullptr};
 
@@ -32,6 +50,10 @@ class state_manager {
         auto state = std::make_unique<T>(std::forward<Args>(args)...);
         this->state_map[id] = std::move(state);
     };
+
+    void request_transition(IdType id) {
+        set_current_state(id);
+    }
 
     StateType* get_state(IdType id) {
         if (!state_map.contains(id)) return nullptr;
