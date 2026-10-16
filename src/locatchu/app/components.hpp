@@ -23,15 +23,24 @@ struct button {
     Rectangle container;
 
     template <typename F>
-    void on_click(F&& f) {
-        if (CheckCollisionPointRec(GetMousePosition(), container))
+    button& on_click(F&& f) {
+        if (CheckCollisionPointRec(GetMousePosition(), container) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
             f();
+        return *this;
     };
 
     template <typename F>
-    void on_hover(F&& f) {
+    button& on_hover(F&& f) {
         if (CheckCollisionPointRec(GetMousePosition(), container))
             f();
+        return *this;
+    }
+
+    template <typename F>
+    button& on_release(F&& f) {
+        if (!CheckCollisionPointRec(GetMousePosition(), container))
+            f();
+        return *this;
     }
 };
 

@@ -24,14 +24,8 @@ class menu : public state_interface<APP_STATES> {
         play = world.make();
         auto play_measure = MeasureTextEx(GetFontDefault(), "Play", config.start_font_size, 5.f);
         Rectangle description_rect = world.get_component<text>(description).container;
-        Rectangle play_rect = Rectangle{.x = description_rect.x,
-                                        .y = description_rect.y + description_rect.height + TEXT_Y_PADDING,
-                                        .width = play_measure.x,
-                                        .height = play_measure.y};
-        world.add_component<text>(play, text{.text = "Play",
-                                             .container = play_rect,
-                                             .color = config.start_color,
-                                             .font_size = config.start_font_size});
+        Rectangle play_rect{.x = description_rect.x, .y = description_rect.y + description_rect.height + TEXT_Y_PADDING, .width = play_measure.x, .height = play_measure.y};
+        world.add_component<text>(play, text{.text = "Play", .container = play_rect, .color = config.start_color, .font_size = config.start_font_size});
         world.add_component<button>(play, button{.container = play_rect});
     };
 
@@ -40,13 +34,9 @@ class menu : public state_interface<APP_STATES> {
         quit = world.make();
         auto quit_measure = MeasureTextEx(GetFontDefault(), "Quit", config.quit_font_size, 5.f);
         Rectangle play_rect = world.get_component<text>(play).container;
-        world.add_component<text>(quit, text{.text = "Quit",
-                                             .container = Rectangle{.x = play_rect.x,
-                                                                    .y = play_rect.y + play_rect.height + TEXT_Y_PADDING,
-                                                                    .width = quit_measure.x,
-                                                                    .height = quit_measure.y},
-                                             .color = config.quit_color,
-                                             .font_size = config.quit_font_size});
+        Rectangle quit_rect{.x = play_rect.x, .y = play_rect.y + play_rect.height + TEXT_Y_PADDING, .width = quit_measure.x, .height = quit_measure.y};
+        world.add_component<text>(quit, text{.text = "Quit", .container = quit_rect, .color = config.quit_color, .font_size = config.quit_font_size});
+        world.add_component<button>(quit, button{.container = quit_rect});
     };
 
     void initialize_description_text() {
@@ -100,8 +90,24 @@ class menu : public state_interface<APP_STATES> {
         if (IsKeyPressed(KEY_ENTER)) this->request_transition(APP_STATES::GAME);
         auto [play_text, play_button] = world.get_component<text, button>(play);
         play_button.on_hover([&play_text]() {
-            play_text.color = BLACK;
-        });
+                       play_text.color = BLACK;
+                   })
+            .on_release([&play_text, this]() {
+                play_text.color = this->config.start_color;
+            })
+            .on_click([this]() {
+                this->request_transition(APP_STATES::GAME);
+            });
+        auto [quit_text, quit_button] = world.get_component<text, button>(quit);
+        quit_button.on_hover([&quit_text]() {
+                       quit_text.color = BLACK;
+                   })
+            .on_release([&quit_text, this]() {
+                quit_text.color = this->config.quit_color;
+            })
+            .on_click([this]() {
+                this->request_transition(APP_STATES::QUIT);
+            });
     };
     void on_render() override {
         ClearBackground(config.background_color);
