@@ -7,16 +7,16 @@
     },
     "title_font_size": 50,
     "description_color": {
-        "r": 0,
-        "g": 0,
-        "b": 0,
+        "r": 90,
+        "g": 150,
+        "b": 140,
         "a": 255
     },
     "description_font_size": 25,
     "background_color": {
-        "r": 245,
-        "g": 245,
-        "b": 245,
+        "r": 20,
+        "g": 53,
+        "b": 59,
         "a": 255
     },
     "start_color": {
@@ -34,5 +34,5 @@
         "a": 255
     },
     "title": "locatchu",
-    "description": "An entity with no thoughts..."
+    "description": "A discernible entity..."
 }

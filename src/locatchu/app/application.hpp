@@ -17,7 +17,8 @@ class application {
     config::menu_config menu_config{};
     enum class APP_STATES : std::uint8_t {
         GAME,
-        MENU
+        MENU,
+        QUIT
     };
     loca::state_manager<APP_STATES, state_interface> state_manager;
 
@@ -46,12 +47,12 @@ class application {
     };
 
     [[nodiscard]] bool init() {
+        SetTraceLogLevel(LOG_NONE);  // for now
         if (!initialize_configuration_set(this->menu_config, this->app_config, this->world_config)) return false;
         InitWindow(this->app_config.screen_width, this->app_config.screen_height, this->app_config.title.c_str());
         SetWindowState(FLAG_FULLSCREEN_MODE);
         this->state_manager.register_state<game>(APP_STATES::GAME, world_config);
         this->state_manager.register_state<menu>(APP_STATES::MENU, menu_config);
-
         this->state_manager.set_current_state(APP_STATES::MENU);
 
         return true;
@@ -74,7 +75,8 @@ class application {
 
     ~application() {
         auto* current_state = this->state_manager.get_current_state();
-        current_state->on_exit();
+        if (current_state)
+            current_state->on_exit();
     };
 };
 };  // namespace loca

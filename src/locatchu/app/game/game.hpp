@@ -9,9 +9,9 @@
 #include "../states.hpp"
 
 namespace loca {
-using world_t = forge::registry<position, velocity, tag>;
 
 class game : public state_interface {
+    using world_t = forge::registry<position, velocity, tag>;
     world_t world;
     forge::entity player;
     Camera2D camera{};

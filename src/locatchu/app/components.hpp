@@ -12,6 +12,13 @@ struct tag {
     } type;
 };
 
+struct text {
+    std::string text;
+    Rectangle container;
+    Color color;
+    int font_size;
+};
+
 struct position {
     Vector2 location{0};
 };
