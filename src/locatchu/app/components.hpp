@@ -19,6 +19,22 @@ struct text {
     int font_size;
 };
 
+struct button {
+    Rectangle container;
+
+    template <typename F>
+    void on_click(F&& f) {
+        if (CheckCollisionPointRec(GetMousePosition(), container))
+            f();
+    };
+
+    template <typename F>
+    void on_hover(F&& f) {
+        if (CheckCollisionPointRec(GetMousePosition(), container))
+            f();
+    }
+};
+
 struct position {
     Vector2 location{0};
 };

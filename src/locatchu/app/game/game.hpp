@@ -18,7 +18,7 @@ class game : public state_interface<APP_STATES> {
     const config::world_config config;
 
    public:
-    game(const config::world_config& config, auto callback) : state_interface<APP_STATES>(callback), config{config} {};
+    game(const config::world_config& config, auto transition_callback) : state_interface<APP_STATES>(transition_callback), config{config} {};
     void on_init() override {
         player = world.make();
         auto [p, _, _] = world.add_component<position, velocity, tag>(player, position{GetScreenWidth() / 2.f, GetScreenHeight() / 2.f}, velocity{0, 0}, tag::PLAYER);
