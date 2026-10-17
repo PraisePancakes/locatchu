@@ -50,4 +50,11 @@ struct position {
 struct velocity {
     Vector2 direction{0};
 };
+
+struct particle {
+    position pos;
+    velocity vel;
+    float radius;
+    Color color;
+};
 };  // namespace loca

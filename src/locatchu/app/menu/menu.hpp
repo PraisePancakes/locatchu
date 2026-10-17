@@ -2,6 +2,7 @@
 #include <raylib.h>
 
 #include <forge/forge.hpp>
+#include <unordered_set>
 
 #include "../components.hpp"
 #include "../serialize.hpp"
@@ -11,7 +12,7 @@ namespace loca {
 
 class menu : public state_interface<APP_STATES> {
     constexpr static std::size_t TEXT_Y_PADDING = 10;
-    using world_t = forge::registry<position, velocity, text, button, tag>;
+    using world_t = forge::registry<particle, text, button, tag>;
     config::menu_config config;
     world_t world;
     forge::entity title;
@@ -79,6 +80,31 @@ class menu : public state_interface<APP_STATES> {
                                               .font_size = config.title_font_size});
     };
 
+    void initialize_particles() {
+        const std::size_t PARTICLE_COUNT = 100;
+        const std::size_t MIN_PARTICLE_RADIUS = 4.f;
+        const std::size_t MAX_PARTICLE_RADIUS = 6.f;
+        int space_x = GetScreenWidth() / (PARTICLE_COUNT - 1);
+        for (int i = 0; i < PARTICLE_COUNT; i++) {
+            float amp = GetScreenHeight() / 2;
+            float freq = .01;
+            float x = i * space_x;
+            int pshift = 0;
+            float y = (amp * sin(freq * x + pshift) + GetScreenHeight() / 2);
+            auto p = world.make();
+            position pos{.location = Vector2{.x = x, .y = y}};
+            float radius = MIN_PARTICLE_RADIUS + (std::rand() % (MAX_PARTICLE_RADIUS - MIN_PARTICLE_RADIUS));
+            world.add_component<particle, tag>(p, particle{.pos = pos, .vel = {0}, .radius = radius, .color = RAYWHITE}, tag{.type = tag::PARTICLE});
+        };
+    };
+
+    void render_particles() {
+        auto vw = world.view<const particle>();
+        vw.each([](const particle& p) {
+            DrawCircle(p.pos.location.x, p.pos.location.y, p.radius, p.color);
+        });
+    }
+
     void render_title_text() {
         auto [title_text, title_container, title_color, title_font_size] = world.get_component<text>(title);
         DrawText(title_text.c_str(), title_container.x, title_container.y, title_font_size, title_color);
@@ -86,7 +112,26 @@ class menu : public state_interface<APP_STATES> {
 
    public:
     menu(const config::menu_config& config, auto transition_callback) : state_interface<APP_STATES>(transition_callback), config{config} {};
-    void on_update(float) override {
+    void on_update(float dt) override {
+
+    };
+    void on_render() override {
+        ClearBackground(config.background_color);
+        render_particles();
+        render_title_text();
+        render_description_text();
+        render_play_button();
+        render_quit_button();
+    };
+    void on_init() override {
+        initialize_particles();
+        initialize_title_text();
+        initialize_description_text();
+        initialize_play_button();
+        initialize_quit_button();
+    };
+    void on_exit() override {};
+    void on_input() override {
         if (IsKeyPressed(KEY_ENTER)) this->request_transition(APP_STATES::GAME);
         auto [play_text, play_button] = world.get_component<text, button>(play);
         play_button.on_hover([&play_text]() {
@@ -109,21 +154,6 @@ class menu : public state_interface<APP_STATES> {
                 this->request_transition(APP_STATES::QUIT);
             });
     };
-    void on_render() override {
-        ClearBackground(config.background_color);
-        render_title_text();
-        render_description_text();
-        render_play_button();
-        render_quit_button();
-    };
-    void on_init() override {
-        initialize_title_text();
-        initialize_description_text();
-        initialize_play_button();
-        initialize_quit_button();
-    };
-    void on_exit() override {};
-    void on_input() override {};
     ~menu() = default;
 };
 };  // namespace loca
