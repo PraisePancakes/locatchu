@@ -53,7 +53,6 @@ struct velocity {
 
 struct particle {
     position pos;
-    velocity vel;
     float radius;
     Color color;
 };

@@ -12,6 +12,18 @@ namespace loca {
 
 class menu : public state_interface<APP_STATES> {
     constexpr static std::size_t TEXT_Y_PADDING = 10;
+
+    struct {
+        const std::size_t PARTICLE_COUNT = 100;
+        const int X_SPACE = GetScreenWidth() / (PARTICLE_COUNT - 1);
+        const float AMP = GetScreenHeight() / 2;
+        const int PHASE_SHIFT = 0;
+        const float FREQ = .01;
+        const std::size_t MIN_PARTICLE_RADIUS = 4.f;
+        const std::size_t MAX_PARTICLE_RADIUS = 6.f;
+        const float PARTICLE_SPEED = 40.f;
+    } particle_config;
+
     using world_t = forge::registry<particle, text, button, tag>;
     config::menu_config config;
     world_t world;
@@ -81,20 +93,13 @@ class menu : public state_interface<APP_STATES> {
     };
 
     void initialize_particles() {
-        const std::size_t PARTICLE_COUNT = 100;
-        const std::size_t MIN_PARTICLE_RADIUS = 4.f;
-        const std::size_t MAX_PARTICLE_RADIUS = 6.f;
-        int space_x = GetScreenWidth() / (PARTICLE_COUNT - 1);
-        for (int i = 0; i < PARTICLE_COUNT; i++) {
-            float amp = GetScreenHeight() / 2;
-            float freq = .01;
-            float x = i * space_x;
-            int pshift = 0;
-            float y = (amp * sin(freq * x + pshift) + GetScreenHeight() / 2);
+        for (int i = 0; i < particle_config.PARTICLE_COUNT; i++) {
+            float x = i * particle_config.X_SPACE;
+            float y = (particle_config.AMP * sin(particle_config.FREQ * x + particle_config.PHASE_SHIFT) + GetScreenHeight() / 2);
             auto p = world.make();
             position pos{.location = Vector2{.x = x, .y = y}};
-            float radius = MIN_PARTICLE_RADIUS + (std::rand() % (MAX_PARTICLE_RADIUS - MIN_PARTICLE_RADIUS));
-            world.add_component<particle, tag>(p, particle{.pos = pos, .vel = {0}, .radius = radius, .color = RAYWHITE}, tag{.type = tag::PARTICLE});
+            float radius = particle_config.MIN_PARTICLE_RADIUS + (std::rand() % (particle_config.MAX_PARTICLE_RADIUS - particle_config.MIN_PARTICLE_RADIUS));
+            world.add_component<particle, tag>(p, particle{.pos = pos, .radius = radius, .color = RAYWHITE}, tag{.type = tag::PARTICLE});
         };
     };
 
@@ -113,7 +118,12 @@ class menu : public state_interface<APP_STATES> {
    public:
     menu(const config::menu_config& config, auto transition_callback) : state_interface<APP_STATES>(transition_callback), config{config} {};
     void on_update(float dt) override {
-
+        auto vw = world.view<particle>();
+        vw.each([this, dt](particle& p) {
+            p.pos.location.x += dt * particle_config.PARTICLE_SPEED;
+            if (p.pos.location.x > GetScreenWidth()) p.pos.location.x -= GetScreenWidth();
+            p.pos.location.y = particle_config.AMP * std::sin(particle_config.FREQ * p.pos.location.x + particle_config.PHASE_SHIFT) + GetScreenHeight() / 2;
+        });
     };
     void on_render() override {
         ClearBackground(config.background_color);
