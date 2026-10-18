@@ -57,7 +57,7 @@ class application {
    public:
     void run() {
         if (!init()) throw std::runtime_error("application initialization failed");
-        while (!WindowShouldClose()) {
+        while (!WindowShouldClose() && this->state_manager.get_current_id() != APP_STATES::QUIT) {
             BeginDrawing();
             float dt = GetFrameTime();
 

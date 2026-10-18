@@ -41,6 +41,7 @@ class state_manager {
     using IdType = typename StateType::ID_TYPE;
     std::unordered_map<IdType, std::unique_ptr<StateType>> state_map;
     StateType* current_state{nullptr};
+    IdType id;
 
    public:
     template <typename T, typename... Args>
@@ -52,7 +53,12 @@ class state_manager {
     };
 
     void request_transition(IdType id) {
+        this->id = id;
         set_current_state(id);
+    }
+
+    IdType get_current_id() const {
+        return this->id;
     }
 
     StateType* get_state(IdType id) {
@@ -66,6 +72,7 @@ class state_manager {
 
     void set_current_state(IdType id) {
         if (!this->state_map.contains(id) || this->state_map[id].get() == this->current_state) return;
+        this->id = id;
         if (this->current_state) this->current_state->on_exit();
         this->current_state = state_map[id].get();
         this->current_state->on_init();
