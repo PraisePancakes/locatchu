@@ -57,6 +57,9 @@ message("  Binary: ${PROJECT_BINARY_DIR}")
 message("  Version: ${PROJECT_VERSION}")
 message("  Version (alt): ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
 
+target_compile_options(${PROJECT_NAME} PRIVATE
+    $<$<CXX_COMPILER_ID:Clang>:-Wno-c++26-extensions>
+)
 target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_23)
 target_compile_definitions(${PROJECT_NAME} PRIVATE
     PROJECT_ROOT="${CMAKE_SOURCE_DIR}"

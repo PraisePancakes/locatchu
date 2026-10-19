@@ -69,10 +69,11 @@ struct app_config {
 
 struct world_config {
     const char* configuration_path = "config/world_config.json";
-    int player_radius{25};
+    float player_radius{25};
     Color player_color{BLACK};
     float player_speed{200};
-    int enemy_radius{25};
+    float player_running_speed_modifier{1.5};
+    float enemy_radius{25};
     Color enemy_color{RED};
 
     friend void to_json(nlohmann::ordered_json& j, const world_config& c) {
@@ -81,7 +82,8 @@ struct world_config {
             {"player_color", c.player_color},
             {"player_speed", c.player_speed},
             {"enemy_color", c.enemy_color},
-            {"enemy_radius", c.enemy_radius}
+            {"enemy_radius", c.enemy_radius},
+            {"player_running_speed_modifier", c.player_running_speed_modifier}
 
         };
     }
@@ -92,6 +94,7 @@ struct world_config {
         j.at("player_speed").get_to(c.player_speed);
         j.at("enemy_radius").get_to(c.enemy_radius);
         j.at("enemy_color").get_to(c.enemy_color);
+        j.at("player_running_speed_modifier").get_to(c.player_running_speed_modifier);
     }
 };
 

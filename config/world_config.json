@@ -1,1 +1,18 @@
-{"player_radius":25,"player_color":{"r":0,"g":0,"b":0,"a":255},"player_speed":200.0,"enemy_color":{"r":230,"g":41,"b":55,"a":255},"enemy_radius":25}
+{
+    "player_radius": 25,
+    "player_color": {
+        "r": 0,
+        "g": 0,
+        "b": 0,
+        "a": 255
+    },
+    "player_speed": 200.0,
+    "enemy_color": {
+        "r": 230,
+        "g": 41,
+        "b": 55,
+        "a": 255
+    },
+    "enemy_radius": 25,
+    "player_running_speed_modifier": 1.5
+}

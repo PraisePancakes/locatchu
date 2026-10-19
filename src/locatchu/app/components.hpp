@@ -56,4 +56,7 @@ struct particle {
     float radius;
     Color color;
 };
+struct boundingbox2d {
+    Rectangle box;
+};
 };  // namespace loca
