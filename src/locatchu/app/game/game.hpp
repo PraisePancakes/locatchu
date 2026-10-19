@@ -78,8 +78,7 @@ class game : public state_interface<APP_STATES> {
                     auto [pos1, vel1, _, bb1] = world.get_component<position, velocity, tag, boundingbox2d>(it.get_value());
                     auto [pos2, vel2, _, bb2] = world.get_component<position, velocity, tag, boundingbox2d>(it2.get_value());
                     if (CheckCollisionRecs(bb1.box, bb2.box)) {
-                        vel1.direction = vel1.direction * -1;
-                        vel2.direction = vel2.direction * -1;
+                        // resolve collisions
                     };
                 }
             }
