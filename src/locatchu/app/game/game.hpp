@@ -25,8 +25,8 @@ class game : public state_interface<APP_STATES> {
                                                                                         position{GetScreenWidth() / 2.f, GetScreenHeight() / 2.f},
                                                                                         velocity{0, 0},
                                                                                         tag::PLAYER,
-                                                                                        boundingbox2d{.box = {.x = GetScreenWidth() / 2.f,
-                                                                                                              .y = GetScreenHeight() / 2.f,
+                                                                                        boundingbox2d{.box = {.x = GetScreenWidth() / 2.f - config.player_radius,
+                                                                                                              .y = GetScreenHeight() / 2.f - config.player_radius,
                                                                                                               .width = config.player_radius * 2,
                                                                                                               .height = config.player_radius * 2}});
         camera = Camera2D{
@@ -40,8 +40,8 @@ class game : public state_interface<APP_STATES> {
                                                                     position{p.location.x + 50, p.location.y + 50},
                                                                     velocity{0, 0},
                                                                     tag::ENEMY,
-                                                                    boundingbox2d{.box = {.x = p.location.x + 50,
-                                                                                          .y = p.location.y + 50,
+                                                                    boundingbox2d{.box = {.x = p.location.x + 50 - config.enemy_radius,
+                                                                                          .y = p.location.y + 50 - config.enemy_radius,
                                                                                           .width = config.enemy_radius * 2,
                                                                                           .height = config.enemy_radius * 2}});
     };
@@ -65,6 +65,7 @@ class game : public state_interface<APP_STATES> {
         camera.target = camera_position.location;
 
         auto v = world.view<position, velocity, tag, boundingbox2d>();
+
         v.each([&dt](position& p, velocity& v, tag& t, boundingbox2d& bb) {
             p.location = Vector2Add(
                 p.location,
@@ -72,17 +73,31 @@ class game : public state_interface<APP_STATES> {
             bb.box.x = p.location.x - bb.box.width / 2;
             bb.box.y = p.location.y - bb.box.height / 2;
         });
+
         for (auto it = v.begin(); it != v.end(); ++it) {
-            for (auto it2 = v.begin(); it2 != v.end(); ++it2) {
+            auto it2 = it;
+            ++it2;
+            for (; it2 != v.end(); ++it2) {
                 if (it != it2) {
                     auto [pos1, vel1, _, bb1] = world.get_component<position, velocity, tag, boundingbox2d>(it.get_value());
                     auto [pos2, vel2, _, bb2] = world.get_component<position, velocity, tag, boundingbox2d>(it2.get_value());
                     if (CheckCollisionRecs(bb1.box, bb2.box)) {
-                        // resolve collisions
+                        float xolap = std::min(bb1.box.x + bb1.box.width, bb2.box.x + bb2.box.width) - std::max(bb1.box.x, bb2.box.x);
+                        float yolap = std::min(bb1.box.y + bb1.box.height, bb2.box.y + bb2.box.height) - std::max(bb1.box.y, bb2.box.y);
+                        if (xolap < yolap) {
+                            const float s = pos1.location.x < pos2.location.x ? -1.f : 1.f;
+                            pos1.location.x += s * xolap * 0.5;
+                            pos2.location.x -= s * xolap * 0.5;
+                        } else {
+                            const float s = pos1.location.y < pos2.location.y ? -1.f : 1.f;
+                            pos1.location.y += s * yolap * 0.5;
+                            pos2.location.y -= s * yolap * 0.5;
+                        }
                     };
                 }
             }
         };
+
         // aabb collision
     };
     void on_render() override {
@@ -94,7 +109,7 @@ class game : public state_interface<APP_STATES> {
                        p.location.y,
                        t.type == tag::PLAYER ? config.player_radius : config.enemy_radius,
                        t.type == tag::PLAYER ? config.player_color : config.enemy_color);
-            DrawRectangleLines(collider.box.x, collider.box.y, collider.box.width, collider.box.height, RED);
+            DrawRectangleLines(collider.box.x, collider.box.y, collider.box.width, collider.box.height, RED);  // just for testing, maybe make a dev toggle for this
         });
         EndMode2D();
     };
