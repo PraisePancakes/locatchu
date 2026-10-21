@@ -8,7 +8,8 @@ struct tag {
     enum {
         PLAYER,
         ENEMY,
-        PARTICLE
+        PARTICLE,
+        BULLET
     } type;
 };
 
@@ -58,5 +59,10 @@ struct particle {
 };
 struct boundingbox2d {
     Rectangle box;
+    boundingbox2d(Rectangle r) : box(r) {}
+};
+
+struct bullet_lifetime {
+    float time{2.f};
 };
 };  // namespace loca
