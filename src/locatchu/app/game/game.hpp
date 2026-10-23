@@ -12,7 +12,7 @@
 namespace loca {
 
 class game : public state_interface<APP_STATES> {
-    using world_t = forge::registry<position, velocity, tag, boundingbox2d, bullet_lifetime, health>;
+    using world_t = forge::registry<position, velocity, tag, boundingbox2d, bullet_lifetime, health, aggro>;
     world_t world;
     forge::entity player;
     Camera2D camera{};
@@ -99,6 +99,24 @@ class game : public state_interface<APP_STATES> {
         });
     }
 
+    void update_aggro() {
+        auto v = world.view<position, velocity, const aggro>();
+        v.each([this](position& enemy_p, velocity& enemy_v, const aggro& a) {
+            auto& player_pos = this->world.get_component<position>(player);
+            if (Vector2Distance(player_pos.location, enemy_p.location) < a.radius) {
+                Vector2 dir{0};
+                if (player_pos.location.x < enemy_p.location.x) dir.x--;
+                if (player_pos.location.x > enemy_p.location.x) dir.x++;
+                if (player_pos.location.y < enemy_p.location.y) dir.y--;
+                if (player_pos.location.y > enemy_p.location.y) dir.y++;
+                dir = Vector2Normalize(dir);
+                enemy_v.direction = dir * config.enemy_speed;
+            } else {
+                enemy_v.direction = {0};
+            }
+        });
+    };
+
     void render_entities() {
         auto v = world.view<const position, const tag, const boundingbox2d>();
         v.each([&](const position& p, const tag& t, const boundingbox2d& collider) {
@@ -107,6 +125,13 @@ class game : public state_interface<APP_STATES> {
                        to_radius(t),
                        to_color(t));
             DrawRectangleLines(collider.box.x, collider.box.y, collider.box.width, collider.box.height, RED);  // just for testing, maybe make a dev toggle for this
+        });
+    };
+
+    void render_aggro_radius() {
+        auto v = world.view<const position, const aggro>();
+        v.each([](const position& p, const aggro& a) {
+            DrawCircleLines(p.location.x, p.location.y, a.radius, RED);
         });
     };
 
@@ -171,15 +196,15 @@ class game : public state_interface<APP_STATES> {
     void initialize_enemy() {
         auto enemy = world.make();
         position p{float(std::rand() % (int)GetScreenWidth()), float(std::rand() % (int)GetScreenHeight())};
-        world.add_component<position, velocity, tag, boundingbox2d, health>(enemy,
-                                                                            p,
-                                                                            velocity{0, 0},
-                                                                            tag::ENEMY,
-                                                                            boundingbox2d{{.x = p.location.x - config.enemy_radius,
-                                                                                           .y = p.location.y - config.enemy_radius,
-                                                                                           .width = config.enemy_radius * 2,
-                                                                                           .height = config.enemy_radius * 2}},
-                                                                            health{.current = 100, .max = 100});
+        world.add_component<position, velocity, tag, boundingbox2d, health, aggro>(enemy,
+                                                                                   p,
+                                                                                   velocity{0, 0},
+                                                                                   tag::ENEMY,
+                                                                                   boundingbox2d{{.x = p.location.x - config.enemy_radius,
+                                                                                                  .y = p.location.y - config.enemy_radius,
+                                                                                                  .width = config.enemy_radius * 2,
+                                                                                                  .height = config.enemy_radius * 2}},
+                                                                                   health{.current = 100, .max = 100}, aggro{.radius = config.enemy_radius * 8});
     }
 
    public:
@@ -226,6 +251,7 @@ class game : public state_interface<APP_STATES> {
         update_entity_position(dt);
         update_bulletlifetimes(dt);
         update_health();
+        update_aggro();
         resolve_bullet_collisions(dt);
     };
 
@@ -234,6 +260,7 @@ class game : public state_interface<APP_STATES> {
         BeginMode2D(camera);
         render_entities();
         render_health();
+        render_aggro_radius();
         EndMode2D();
     };
     game(const game&) = delete;

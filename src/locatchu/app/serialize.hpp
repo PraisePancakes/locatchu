@@ -75,6 +75,7 @@ struct world_config {
     float player_running_speed_modifier{1.5};
     float enemy_radius{25};
     Color enemy_color{RED};
+    float enemy_speed{100.f};
     float bullet_speed{200};
     float bullet_radius{5.f};
     Color bullet_color{BLACK};
@@ -91,7 +92,8 @@ struct world_config {
             {"bullet_speed", c.bullet_speed},
             {"bullet_radius", c.bullet_radius},
             {"bullet_color", c.bullet_color},
-            {"bullet_lifetime", c.bullet_lifetime}
+            {"bullet_lifetime", c.bullet_lifetime},
+            {"enemy_speed", c.enemy_speed}
 
         };
     }
@@ -107,6 +109,7 @@ struct world_config {
         j.at("bullet_radius").get_to(c.bullet_radius);
         j.at("bullet_color").get_to(c.bullet_color);
         j.at("bullet_lifetime").get_to(c.bullet_lifetime);
+        j.at("enemy_speed").get_to(c.enemy_speed);
     }
 };
 

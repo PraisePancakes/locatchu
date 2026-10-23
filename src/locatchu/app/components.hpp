@@ -70,4 +70,8 @@ struct health {
     int current;
     int max;
 };
+
+struct aggro {
+    float radius;
+};
 };  // namespace loca
