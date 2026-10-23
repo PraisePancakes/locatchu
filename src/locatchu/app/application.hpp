@@ -61,7 +61,7 @@ class application {
             BeginDrawing();
             float dt = GetFrameTime();
 
-            this->state_manager.get_current_state()->on_input();
+            this->state_manager.get_current_state()->on_input(dt);
             this->state_manager.get_current_state()->on_update(dt);
             this->state_manager.get_current_state()->on_render();
             EndDrawing();

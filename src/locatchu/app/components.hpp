@@ -65,4 +65,9 @@ struct boundingbox2d {
 struct bullet_lifetime {
     float time{2.f};
 };
+
+struct health {
+    int current;
+    int max;
+};
 };  // namespace loca

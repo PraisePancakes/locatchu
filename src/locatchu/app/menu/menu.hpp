@@ -141,7 +141,7 @@ class menu : public state_interface<APP_STATES> {
         initialize_quit_button();
     };
     void on_exit() override {};
-    void on_input() override {
+    void on_input(float) override {
         if (IsKeyPressed(KEY_ENTER)) this->request_transition(APP_STATES::GAME);
         auto [play_text, play_button] = world.get_component<text, button>(play);
         play_button.on_hover([&play_text]() {

@@ -21,7 +21,7 @@ class state_interface {
     virtual void on_render() = 0;
     virtual void on_init() = 0;
     virtual void on_exit() = 0;
-    virtual void on_input() = 0;
+    virtual void on_input(float) = 0;
     virtual ~state_interface() = default;
 
    protected:

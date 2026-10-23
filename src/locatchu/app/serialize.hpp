@@ -76,8 +76,9 @@ struct world_config {
     float enemy_radius{25};
     Color enemy_color{RED};
     float bullet_speed{200};
-    float bullet_radius{2.f};
+    float bullet_radius{5.f};
     Color bullet_color{BLACK};
+    float bullet_lifetime{2.f};
 
     friend void to_json(nlohmann::ordered_json& j, const world_config& c) {
         j = nlohmann::ordered_json{
@@ -89,7 +90,8 @@ struct world_config {
             {"player_running_speed_modifier", c.player_running_speed_modifier},
             {"bullet_speed", c.bullet_speed},
             {"bullet_radius", c.bullet_radius},
-            {"bullet_color", c.bullet_color}
+            {"bullet_color", c.bullet_color},
+            {"bullet_lifetime", c.bullet_lifetime}
 
         };
     }
@@ -104,6 +106,7 @@ struct world_config {
         j.at("bullet_speed").get_to(c.bullet_speed);
         j.at("bullet_radius").get_to(c.bullet_radius);
         j.at("bullet_color").get_to(c.bullet_color);
+        j.at("bullet_lifetime").get_to(c.bullet_lifetime);
     }
 };
 
