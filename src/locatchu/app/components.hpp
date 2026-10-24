@@ -74,4 +74,11 @@ struct health {
 struct aggro {
     float radius;
 };
+
+struct view_marker {
+    Vector2 pos;
+    float radius;
+    Color c;
+};
+
 };  // namespace loca

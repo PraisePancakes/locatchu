@@ -12,7 +12,7 @@
 namespace loca {
 
 class game : public state_interface<APP_STATES> {
-    using world_t = forge::registry<position, velocity, tag, boundingbox2d, bullet_lifetime, health, aggro>;
+    using world_t = forge::registry<position, velocity, tag, boundingbox2d, bullet_lifetime, health, aggro, view_marker>;
     world_t world;
     forge::entity player;
     Camera2D camera{};
@@ -100,20 +100,17 @@ class game : public state_interface<APP_STATES> {
     }
 
     void update_aggro() {
-        auto v = world.view<position, velocity, const aggro>();
-        v.each([this](position& enemy_p, velocity& enemy_v, const aggro& a) {
+        auto v = world.view<position, velocity, const aggro, view_marker>();
+        v.each([this](position& enemy_p, velocity& enemy_v, const aggro& a, view_marker& vm) {
             auto& player_pos = this->world.get_component<position>(player);
-            if (Vector2Distance(player_pos.location, enemy_p.location) < a.radius) {
-                Vector2 dir{0};
-                if (player_pos.location.x < enemy_p.location.x) dir.x--;
-                if (player_pos.location.x > enemy_p.location.x) dir.x++;
-                if (player_pos.location.y < enemy_p.location.y) dir.y--;
-                if (player_pos.location.y > enemy_p.location.y) dir.y++;
+            Vector2 dir = Vector2Subtract(player_pos.location, enemy_p.location);
+            const float distance = Vector2Distance(player_pos.location, enemy_p.location);
+            if (distance < a.radius) {
                 dir = Vector2Normalize(dir);
                 enemy_v.direction = dir * config.enemy_speed;
-            } else {
+            } else
                 enemy_v.direction = {0};
-            }
+            vm.pos = Vector2Add(enemy_p.location, Vector2Scale(dir, vm.radius));
         });
     };
 
@@ -132,6 +129,13 @@ class game : public state_interface<APP_STATES> {
         auto v = world.view<const position, const aggro>();
         v.each([](const position& p, const aggro& a) {
             DrawCircleLines(p.location.x, p.location.y, a.radius, RED);
+        });
+    };
+
+    void render_view_marker() {
+        auto v = world.view<view_marker>();
+        v.each([](const view_marker& vm) {
+            DrawCircle(vm.pos.x, vm.pos.y, vm.radius, vm.c);
         });
     };
 
@@ -182,29 +186,31 @@ class game : public state_interface<APP_STATES> {
     };
     void initialize_player() {
         player = world.make();
-        world.add_component<position, velocity, tag, boundingbox2d, health>(player,
-                                                                            position{GetScreenWidth() / 2.f, GetScreenHeight() / 2.f},
-                                                                            velocity{0, 0},
-                                                                            tag::PLAYER,
-                                                                            boundingbox2d{{.x = GetScreenWidth() / 2.f - config.player_radius,
-                                                                                           .y = GetScreenHeight() / 2.f - config.player_radius,
-                                                                                           .width = config.player_radius * 2,
-                                                                                           .height = config.player_radius * 2}},
-                                                                            health{.current = 100, .max = 100});
+        world.add_component<position, velocity, tag, boundingbox2d, health, view_marker>(player,
+                                                                                         position{GetScreenWidth() / 2.f, GetScreenHeight() / 2.f},
+                                                                                         velocity{0, 0},
+                                                                                         tag::PLAYER,
+                                                                                         boundingbox2d{{.x = GetScreenWidth() / 2.f - config.player_radius,
+                                                                                                        .y = GetScreenHeight() / 2.f - config.player_radius,
+                                                                                                        .width = config.player_radius * 2,
+                                                                                                        .height = config.player_radius * 2}},
+                                                                                         health{.current = 100, .max = 100},
+                                                                                         view_marker{.pos = {0}, .radius = 10, .c = GREEN});
     };
 
     void initialize_enemy() {
         auto enemy = world.make();
         position p{float(std::rand() % (int)GetScreenWidth()), float(std::rand() % (int)GetScreenHeight())};
-        world.add_component<position, velocity, tag, boundingbox2d, health, aggro>(enemy,
-                                                                                   p,
-                                                                                   velocity{0, 0},
-                                                                                   tag::ENEMY,
-                                                                                   boundingbox2d{{.x = p.location.x - config.enemy_radius,
-                                                                                                  .y = p.location.y - config.enemy_radius,
-                                                                                                  .width = config.enemy_radius * 2,
-                                                                                                  .height = config.enemy_radius * 2}},
-                                                                                   health{.current = 100, .max = 100}, aggro{.radius = config.enemy_radius * 8});
+        world.add_component<position, velocity, tag, boundingbox2d, health, aggro, view_marker>(enemy,
+                                                                                                p,
+                                                                                                velocity{0, 0},
+                                                                                                tag::ENEMY,
+                                                                                                boundingbox2d{{.x = p.location.x - config.enemy_radius,
+                                                                                                               .y = p.location.y - config.enemy_radius,
+                                                                                                               .width = config.enemy_radius * 2,
+                                                                                                               .height = config.enemy_radius * 2}},
+                                                                                                health{.current = 100, .max = 100}, aggro{.radius = config.enemy_radius * 8},
+                                                                                                view_marker{.pos = {0}, .radius = 10, .c = BLACK});
     }
 
    public:
@@ -218,7 +224,7 @@ class game : public state_interface<APP_STATES> {
     void on_exit() override {};
 
     void on_input(float dt) override {
-        auto [pos, vel, pbb] = world.get_component<position, velocity, boundingbox2d>(player);
+        auto [pos, vel, pbb, vm] = world.get_component<position, velocity, boundingbox2d, view_marker>(player);
         Vector2 dir{0};
         if (IsKeyDown(KEY_A)) dir.x--;
         if (IsKeyDown(KEY_W)) dir.y--;
@@ -227,22 +233,24 @@ class game : public state_interface<APP_STATES> {
         dir = Vector2Normalize(dir);
         if (IsKeyDown(KEY_LEFT_SHIFT)) dir *= config.player_running_speed_modifier;
         vel.direction = (dir * config.player_speed);
-        static float cool_down = .1f;
-        const static float max_cool_down = .1f;
+
+        const Vector2 mouse_pos = GetScreenToWorld2D(GetMousePosition(), camera);
+        const Vector2 mouse_dir = Vector2Normalize(mouse_pos - pos.location);
+        static float cool_down = this->config.player_shoot_max_cooldown;
+
         if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) cool_down -= dt;
         if (cool_down <= 0) {
-            cool_down = max_cool_down;
+            cool_down = this->config.player_shoot_max_cooldown;
             auto bullet = world.make();
-            Vector2 mouse_pos = GetScreenToWorld2D(GetMousePosition(), camera);
-            Vector2 mouse_dir = Vector2Normalize(mouse_pos - pos.location);
-            position bpos{Vector2Add(pos.location, mouse_dir * pbb.box.width)};
-            velocity bvel{mouse_dir * config.bullet_speed};
-            boundingbox2d bbox{{.x = bpos.location.x - config.bullet_radius,
-                                .y = bpos.location.y - config.bullet_radius,
-                                .width = config.bullet_radius * 2,
-                                .height = config.bullet_radius * 2}};
+            const position bpos{Vector2Add(pos.location, mouse_dir * pbb.box.width)};
+            const velocity bvel{mouse_dir * config.bullet_speed};
+            const boundingbox2d bbox{{.x = bpos.location.x - config.bullet_radius,
+                                      .y = bpos.location.y - config.bullet_radius,
+                                      .width = config.bullet_radius * 2,
+                                      .height = config.bullet_radius * 2}};
             world.add_component<bullet_lifetime, position, velocity, tag, boundingbox2d>(bullet, bullet_lifetime{.time = config.bullet_lifetime}, bpos, bvel, tag::BULLET, bbox);
         }
+        vm.pos = Vector2Add(pos.location, Vector2Scale(mouse_dir, vm.radius));
     };
 
     void on_update(float dt) override {
@@ -261,6 +269,7 @@ class game : public state_interface<APP_STATES> {
         render_entities();
         render_health();
         render_aggro_radius();
+        render_view_marker();
         EndMode2D();
     };
     game(const game&) = delete;

@@ -24,5 +24,6 @@
         "a": 255
     },
     "bullet_lifetime": 2.0,
-    "enemy_speed": 100.0
+    "enemy_speed": 100.0,
+    "player_shoot_max_cooldown": 0.1
 }
