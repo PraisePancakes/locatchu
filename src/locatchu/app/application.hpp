@@ -44,7 +44,7 @@ class application {
         SetTraceLogLevel(LOG_NONE);  // for now
         if (!initialize_configuration_set(this->menu_config, this->app_config, this->world_config)) return false;
         InitWindow(this->app_config.screen_width, this->app_config.screen_height, this->app_config.title.c_str());
-        // SetWindowState(FLAG_FULLSCREEN_MODE);
+        SetWindowState(FLAG_FULLSCREEN_MODE);
         auto transition_callback = [this](APP_STATES s) {
             state_manager.request_transition(s);
         };

@@ -118,8 +118,13 @@ class game : public state_interface<APP_STATES> {
                     cool_down = this->config.player_shoot_max_cooldown;
                     spawn_bullet(bpos, bvel);
                 }
-            } else
-                enemy_v.direction = {0};
+            } else {
+                const float dirs[] = {-1.f, 1.f};
+                float rand_x_dir = dirs[std::rand() % 2];
+                float rand_y_dir = dirs[std::rand() % 2];
+                Vector2 dir = Vector2Normalize(Vector2{rand_x_dir, rand_y_dir});
+                enemy_v.direction = Vector2Add(enemy_v.direction, dir);
+            }
             vm.pos = Vector2Add(enemy_p.location, Vector2Scale(dir, vm.radius));
         });
     };
@@ -243,7 +248,9 @@ class game : public state_interface<APP_STATES> {
     void on_init() override {
         initialize_camera();
         initialize_player();
-        initialize_enemy();
+        for (int i = 0; i < 10; i++) {
+            initialize_enemy();
+        }
     };
 
     void on_exit() override {};
