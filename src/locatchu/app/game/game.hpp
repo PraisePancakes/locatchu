@@ -17,6 +17,7 @@ class game : public state_interface<APP_STATES> {
     forge::entity player;
     Camera2D camera{};
     const config::world_config config;
+    int score{0};
 
     void resolve_aabb_collisions(float dt) {
         auto v = world.view<position, boundingbox2d>();
@@ -72,6 +73,7 @@ class game : public state_interface<APP_STATES> {
             if (h.current <= 0) to_delete.push_back(e);
         });
         for (auto& e : to_delete) {
+            score++;
             world.destroy(e);
         };
     };
@@ -99,21 +101,36 @@ class game : public state_interface<APP_STATES> {
         });
     }
 
-    void update_aggro() {
-        auto v = world.view<position, velocity, const aggro, view_marker>();
-        v.each([this](position& enemy_p, velocity& enemy_v, const aggro& a, view_marker& vm) {
+    void update_aggro(float dt) {
+        auto v = world.view<position, velocity, const aggro, view_marker, boundingbox2d>();
+        v.each([this, dt](position& enemy_p, velocity& enemy_v, const aggro& a, view_marker& vm, const boundingbox2d& ebb) {
             auto& player_pos = this->world.get_component<position>(player);
             Vector2 dir = Vector2Subtract(player_pos.location, enemy_p.location);
             const float distance = Vector2Distance(player_pos.location, enemy_p.location);
             if (distance < a.radius) {
                 dir = Vector2Normalize(dir);
                 enemy_v.direction = dir * config.enemy_speed;
+                const position bpos{Vector2Add(enemy_p.location, dir * ebb.box.width)};
+                const velocity bvel{dir * config.bullet_speed};
+                static float cool_down = this->config.player_shoot_max_cooldown;
+                cool_down -= dt;
+                if (cool_down <= 0) {
+                    cool_down = this->config.player_shoot_max_cooldown;
+                    spawn_bullet(bpos, bvel);
+                }
             } else
                 enemy_v.direction = {0};
             vm.pos = Vector2Add(enemy_p.location, Vector2Scale(dir, vm.radius));
         });
     };
-
+    void render_ui() {
+        const int SCORE_FONT_SIZE = 20;
+        const int HEALTH_FONT_SIZE = 20;
+        Vector2 score_pos = GetScreenToWorld2D(Vector2{.x = 10, .y = 10}, camera);
+        DrawText(TextFormat("Score: %d", this->score), score_pos.x, score_pos.y, SCORE_FONT_SIZE, BLACK);
+        const auto& p_health = world.get_component<health>(player);
+        DrawText(TextFormat("Health: %d %%", p_health.current), score_pos.x, score_pos.y + 10 + SCORE_FONT_SIZE, HEALTH_FONT_SIZE, BLACK);
+    };
     void render_entities() {
         auto v = world.view<const position, const tag, const boundingbox2d>();
         v.each([&](const position& p, const tag& t, const boundingbox2d& collider) {
@@ -212,6 +229,14 @@ class game : public state_interface<APP_STATES> {
                                                                                                 health{.current = 100, .max = 100}, aggro{.radius = config.enemy_radius * 8},
                                                                                                 view_marker{.pos = {0}, .radius = 10, .c = BLACK});
     }
+    void spawn_bullet(const position& p, const velocity& v) {
+        auto bullet = world.make();
+        const boundingbox2d bbox{{.x = p.location.x - config.bullet_radius,
+                                  .y = p.location.y - config.bullet_radius,
+                                  .width = config.bullet_radius * 2,
+                                  .height = config.bullet_radius * 2}};
+        world.add_component<bullet_lifetime, position, velocity, tag, boundingbox2d>(bullet, bullet_lifetime{.time = config.bullet_lifetime}, p, v, tag::BULLET, bbox);
+    };
 
    public:
     game(const config::world_config& config, auto transition_callback) : state_interface<APP_STATES>(transition_callback), config{config} {};
@@ -241,14 +266,9 @@ class game : public state_interface<APP_STATES> {
         if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) cool_down -= dt;
         if (cool_down <= 0) {
             cool_down = this->config.player_shoot_max_cooldown;
-            auto bullet = world.make();
             const position bpos{Vector2Add(pos.location, mouse_dir * pbb.box.width)};
             const velocity bvel{mouse_dir * config.bullet_speed};
-            const boundingbox2d bbox{{.x = bpos.location.x - config.bullet_radius,
-                                      .y = bpos.location.y - config.bullet_radius,
-                                      .width = config.bullet_radius * 2,
-                                      .height = config.bullet_radius * 2}};
-            world.add_component<bullet_lifetime, position, velocity, tag, boundingbox2d>(bullet, bullet_lifetime{.time = config.bullet_lifetime}, bpos, bvel, tag::BULLET, bbox);
+            spawn_bullet(bpos, bvel);
         }
         vm.pos = Vector2Add(pos.location, Vector2Scale(mouse_dir, vm.radius));
     };
@@ -259,13 +279,14 @@ class game : public state_interface<APP_STATES> {
         update_entity_position(dt);
         update_bulletlifetimes(dt);
         update_health();
-        update_aggro();
+        update_aggro(dt);
         resolve_bullet_collisions(dt);
     };
 
     void on_render() override {
         ClearBackground(RAYWHITE);
         BeginMode2D(camera);
+        render_ui();
         render_entities();
         render_health();
         render_aggro_radius();
